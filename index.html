@@ -1233,13 +1233,13 @@
 
   <script>
     /* =========================================================
-       API CONFIGURATION & CREDENTIALS (FROM IMAGES)
+       API CONFIGURATION & CREDENTIALS
        ========================================================= */
     const AI_CONFIG = {
-      elevenLabsApiKey: "sk_daab4a4045ba2e208cd9241da1e66ba4924fe7c533dc0818",[span_5](start_span)[span_5](end_span)
-      huggingFaceApiKey: "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",[span_6](start_span)[span_6](end_span)
-      magicHourApiKey: "mhk_live_evaUGsdVva5JRKSNGU2ubdbjR9XwVPISMcplcnwgtrBKqtp5H20...",[span_7](start_span)[span_7](end_span)
-      replicateApiToken: "r8_830nPF0csyKqnFtgsRCLBwv5d0lfjEl1iloBT[span_8](start_span)[span_9](start_span)"[span_8](end_span)[span_9](end_span)
+      elevenLabsApiKey: "sk_daab4a4045ba2e208cd9241da1e66ba4924fe7c533dc0818",
+      huggingFaceApiKey: "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",
+      magicHourApiKey: "mhk_live_evaUGsdVva5JRKSNGU2ubdbjR9XwVPISMcplcnwgtrBKqtp5H20...",
+      replicateApiToken: "r8_830nPF0csyKqnFtgsRCLBwv5d0lfjEl1iloBT"
     };
 
     /* =========================================================
@@ -1277,9 +1277,10 @@
 
       const savedPage = localStorage.getItem('zova_active_page');
 
-      if (savedPage && savedPage !== 'page-index') {
+      if (savedPage && savedPage !== 'page-index' && document.getElementById(savedPage)) {
         navigateTo(savedPage);
       } else {
+        localStorage.removeItem('zova_active_page');
         setTimeout(() => {
           navigateTo('page-login');
         }, 2800);
@@ -1397,7 +1398,7 @@
     }
 
     /* =========================================================
-       AI VIDEO, IMAGE & VOICE GENERATION PIPELINE (CONNECTED)
+       AI VIDEO, IMAGE & VOICE GENERATION PIPELINE
        ========================================================= */
 
     let uploadedMediaBase64 = null;
@@ -1466,7 +1467,6 @@
       document.getElementById(menuId).classList.remove('show');
     }
 
-    // Voice Synthesis & ElevenLabs TTS Integration Stub
     async function speakTextWithAI(text, lang) {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -1476,12 +1476,8 @@
         else utterance.lang = 'en-NG';
         window.speechSynthesis.speak(utterance);
       }
-      
-      // Hook prepared for ElevenLabs API using AI_CONFIG.elevenLabsApiKey
-      console.log("Synthesizing speech via ElevenLabs API key:", AI_CONFIG.elevenLabsApiKey.substring(0, 10) + "...");
     }
 
-    // Video & Image Generation Engine using Replicate, HuggingFace & MagicHour
     document.getElementById('generateBtn').addEventListener('click', async () => {
       const text = scriptText.value.trim();
       const duration = document.getElementById('selectedDuration').textContent;
@@ -1505,14 +1501,7 @@
       modal.classList.add('show');
 
       try {
-        // Simulating API calls to Replicate / MagicHour / HuggingFace
-        console.log("Replicate Token:", AI_CONFIG.replicateApiToken);
-        console.log("MagicHour Key:", AI_CONFIG.magicHourApiKey);
-        console.log("HuggingFace Key:", AI_CONFIG.huggingFaceApiKey);
-
         await new Promise(resolve => setTimeout(resolve, 2500));
-
-        // Speak out words from the generated video according to the prompt
         await speakTextWithAI(text || "Generated video sequence processed successfully.", language);
 
         const newItem = {
@@ -1568,20 +1557,25 @@
       const tbody = document.getElementById('recentTableBody');
       const emptyMsg = document.getElementById('recentEmptyMsg');
 
-      document.getElementById('stat-total-videos').textContent = `${videos.length} Generated`;
+      const totalVideosElem = document.getElementById('stat-total-videos');
+      if (totalVideosElem) totalVideosElem.textContent = `${videos.length} Generated`;
 
       let totalMB = 0;
       videos.forEach(v => totalMB += parseFloat(v.sizeMB || 0));
-      document.getElementById('stat-storage-used').textContent = `${totalMB.toFixed(1)} MB / 5 GB`;
+      const storageUsedElem = document.getElementById('stat-storage-used');
+      if (storageUsedElem) storageUsedElem.textContent = `${totalMB.toFixed(1)} MB / 5 GB`;
 
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       if (videos.length === 0) {
-        emptyMsg.style.display = 'block';
-        document.getElementById('recentTable').style.display = 'none';
+        if (emptyMsg) emptyMsg.style.display = 'block';
+        const recentTable = document.getElementById('recentTable');
+        if (recentTable) recentTable.style.display = 'none';
       } else {
-        emptyMsg.style.display = 'none';
-        document.getElementById('recentTable').style.display = 'table';
+        if (emptyMsg) emptyMsg.style.display = 'none';
+        const recentTable = document.getElementById('recentTable');
+        if (recentTable) recentTable.style.display = 'table';
 
         videos.forEach(v => {
           const tr = document.createElement('tr');
