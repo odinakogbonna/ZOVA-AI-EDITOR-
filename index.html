@@ -1233,16 +1233,6 @@
 
   <script>
     /* =========================================================
-       API CONFIGURATION & CREDENTIALS
-       ========================================================= */
-    const AI_CONFIG = {
-      elevenLabsApiKey: "sk_daab4a4045ba2e208cd9241da1e66ba4924fe7c533dc0818",
-      huggingFaceApiKey: "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",
-      magicHourApiKey: "mhk_live_evaUGsdVva5JRKSNGU2ubdbjR9XwVPISMcplcnwgtrBKqtp5H20...",
-      replicateApiToken: "r8_830nPF0csyKqnFtgsRCLBwv5d0lfjEl1iloBT"
-    };
-
-    /* =========================================================
        APP STORAGE & STATE MANAGEMENT (LOCALSTORAGE)
        ========================================================= */
 
@@ -1398,7 +1388,7 @@
     }
 
     /* =========================================================
-       AI VIDEO, IMAGE & VOICE GENERATION PIPELINE
+       AI VIDEO, IMAGE & VOICE GENERATION PIPELINE (SECURED)
        ========================================================= */
 
     let uploadedMediaBase64 = null;
@@ -1496,28 +1486,36 @@
 
       modalSpinner.style.display = 'block';
       modalTitle.textContent = "Processing AI Render...";
-      modalDesc.textContent = "Connecting to Replicate, MagicHour & HuggingFace pipelines...";
+      modalDesc.textContent = "Communicating securely with Zova AI backend server...";
       viewVideosBtn.style.display = 'none';
       modal.classList.add('show');
 
       try {
-        await new Promise(resolve => setTimeout(resolve, 2500));
+        // Send generation request to your Node.js backend server instead of exposing keys
+        const response = await fetch('http://localhost:3000/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: text,
+            duration: duration,
+            language: language,
+            aspect: selectedAspectVal,
+            mediaUrl: uploadedMediaBase64
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error || "Generation failed on server.");
+        }
+
         await speakTextWithAI(text || "Generated video sequence processed successfully.", language);
 
-        const newItem = {
-          id: Date.now(),
-          title: text ? text.substring(0, 18) + "..." : "AI Video Production",
-          type: uploadedMediaBase64 ? "Media Edit" : "Text-to-Video",
-          script: text,
-          duration: duration,
-          language: language,
-          aspect: selectedAspectVal,
-          mediaUrl: uploadedMediaBase64 || null,
-          created: "Just now",
-          sizeMB: (Math.random() * 18 + 8).toFixed(1)
-        };
-
-        saveGeneratedItem(newItem);
+        // Save generated item returned from backend
+        saveGeneratedItem(data.item);
 
         modalSpinner.style.display = 'none';
         modalTitle.textContent = "Generation Successful!";
@@ -1527,7 +1525,7 @@
         console.error(err);
         modalSpinner.style.display = 'none';
         modalTitle.textContent = "Generation Error";
-        modalDesc.textContent = "Failed to process media. Please check API status.";
+        modalDesc.textContent = "Failed to connect to backend server. Make sure your server is running.";
       }
     });
 
