@@ -25,8 +25,6 @@ app.post('/api/generate', async (req, res) => {
       return res.status(400).json({ success: false, error: "Prompt or media file is required." });
     }
 
-    // Currently simulating response. When you are ready, you can route this 
-    // to call your Hugging Face, Replicate, or MagicHour functions below!
     setTimeout(() => {
       res.json({
         success: true,
